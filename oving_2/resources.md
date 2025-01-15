@@ -12,7 +12,7 @@ UDP uses datagrams, so receiveFrom will return whenever it receives anything. Th
 // we have no choice in IP, so use 0.0.0.0, INADDR_ANY, or leave the IP field empty
 // the port should be whatever the sender sends to
 // alternate names: sockaddr, resolve(udp)addr, 
-InternetAddress addr
+InternetAddress 10.100.23.204
 
 // a socket that plugs our program to the network. This is the "portal" to the outside world
 // alternate names: conn
