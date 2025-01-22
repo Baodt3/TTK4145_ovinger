@@ -44,10 +44,6 @@ func main() {
 	go elevio.PollObstructionSwitch(drv_obstr)
 	go elevio.PollStopButton(drv_stop)
 
-	elevio.SetMotorDirection(elevio.MD_Down)
-	time.Sleep(10000)
-	floor = 0
-
 	for {
 		select {
 		case a := <-drv_buttons:
