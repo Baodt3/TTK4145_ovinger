@@ -34,38 +34,33 @@ func udp() {
 	ln2, _ := net.ListenUDP("udp", s2)
 	n, remoteAddr, _ = ln2.ReadFromUDP(buffer2)
 	log.Printf("Received %d bytes from %v: %s", n, remoteAddr, buffer2[:n])
-
 }
-func main() {
 
+func main() {
+	
 	conn, err := net.Dial("tcp", "10.100.23.204:33546")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer conn.Close()
 
-	//	conn, err := ln.Accept()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	//defer conn.Close()
-
 	buf := make([]byte, 1024)
-
 	n, _ := conn.Read(buf)
 
 	fmt.Println(string(buf[:n]))
 
+	ln, _ := net.Listen("tcp", ":33546")
+
 	data := []byte("Connect to: 10.100.23.13:33546\x00")
 	_, err1 := conn.Write(data)
+
+	conn2, _ := ln.Accept()
 
 	if err1 != nil {
 		log.Fatal(err1)
 	}
 
-	n, _ = conn.Read(buf)
+	n, _ = conn2.Read(buf)
 
 	fmt.Println(string(buf[:n]))
 }
