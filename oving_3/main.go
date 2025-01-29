@@ -4,6 +4,8 @@ import (
 	"elevator/elevio"
 	"fmt"
 	"time"
+	"elevator/fsm"
+	"elevator/requests"
 )
 
 func findDirection(floor int, desired_floor int) {
@@ -23,12 +25,15 @@ func findDirection(floor int, desired_floor int) {
 	}
 }
 
+
+
 func main() {
 
 	numFloors := 4
+	elevator = Elevator{Floor: -1, Dirn: MD_Stop, behaviour: EB}
 
 	elevio.Init("localhost:15657", numFloors)
-
+	
 	var d elevio.MotorDirection = elevio.MD_Up
 	var floor int
 	var desired_floor int
