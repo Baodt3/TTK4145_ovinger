@@ -5,131 +5,131 @@ import (
 )
 
 type DirnBehaviourPair struct {
-	dirn      MotorDirection
-	behaviour ElevatorBehaviour
+	Dirn      MotorDirection
+	Behaviour ElevatorBehaviour
 }
 
-func requests_above(e Elevator) int {
-	for f := e.floor + 1; f < N_FLOORS; f++ {
+func Requests_above(e Elevator) bool {
+	for f := e.Floor + 1; f < N_FLOORS; f++ {
 		for btn := 0; btn < N_BUTTONS; btn++ {
-			if e.requests[f][btn] {
-				return 1
+			if e.Requests[f][btn] == 1 {
+				return true
 			}
 		}
 	}
-	return 0
+	return false
 }
 
-func requests_below(e Elevator) int {
-	for f := 0; f < e.floor; f++ {
+func Requests_below(e Elevator) bool {
+	for f := 0; f < e.Floor; f++ {
 		for btn := 0; btn < N_BUTTONS; btn++ {
-			if e.requests[f][btn] {
-				return 1
+			if e.Requests[f][btn] == 1 {
+				return true
 			}
 		}
 	}
-	return 0
+	return false
 }
 
-func requests_here(e Elevator) int {
+func Requests_here(e Elevator) bool {
 	for btn := 0; btn < N_BUTTONS; btn++ {
-		if e.requests[e.floor][btn] {
-			return 1
+		if e.Requests[e.Floor][btn] == 1 {
+			return true
 		}
 	}
-	return 0
+	return false
 }
 
-func requests_chooseDirection(e Elevator) DirnBehaviourPair {
-	switch e.dirn {
-	case D_Up:
-		if requests_above(e) {
-			return DirnBehaviourPair{dirn: MD_Up, behaviour: EB_Moving}
-		}
-		if requests_here(e) {
-			return DirnBehaviourPair{dirn: MD_Down, behaviour: EB_DoorOpen}
-		}
-		if requests_below(e) {
-			return DirnBehaviourPair{dirn: MD_Down, behaviour: EB_Moving}
-		}
-		return DirnBehaviourPair{dirn: MD_Stop, behaviour: EB_Idle}
-	case D_Down:
-		if requests_above(e) {
-			return DirnBehaviourPair{dirn: MD_Down, behaviour: EB_Moving}
-		}
-		if requests_here(e) {
-			return DirnBehaviourPair{dirn: MD_Up, behaviour: EB_DoorOpen}
-		}
-		if requests_below(e) {
-			return DirnBehaviourPair{dirn: MD_Up, behaviour: EB_Moving}
-		}
-		return DirnBehaviourPair{dirn: MD_Stop, behaviour: EB_Idle}
-	case D_Stop: // there should only be one request in the Stop case. Checking up or down first is arbitrary.
-		if requests_above(e) {
-			return DirnBehaviourPair{dirn: MD_Stop, behaviour: EB_Moving}
-		}
-		if requests_here(e) {
-			return DirnBehaviourPair{dirn: MD_Up, behaviour: EB_DoorOpen}
-		}
-		if requests_below(e) {
-			return DirnBehaviourPair{dirn: MD_Down, behaviour: EB_Moving}
-		}
-		return DirnBehaviourPair{dirn: MD_Stop, behaviour: EB_Idle}
-	default:
-		return DirnBehaviourPair{dirn: MD_Stop, behaviour: EB_Idle}
-	}
-}
-
-func requests_shouldStop(e Elevator) int {
-	switch e.dirn {
-	case MD_Down:
-		return e.requests[e.floor][BT_HallDown] || e.requests[e.floor][BT_Cab] || !requests_below(e)
+func Requests_chooseDirection(e Elevator) DirnBehaviourPair {
+	switch e.Dirn {
 	case MD_Up:
-		return e.requests[e.floor][BT_HallUp] || e.requests[e.floor][BT_Cab] || !requests_above(e)
-	case MD_Stop:
+		if Requests_above(e) {
+			return DirnBehaviourPair{Dirn: MD_Up, Behaviour: EB_Moving}
+		}
+		if Requests_here(e) {
+			return DirnBehaviourPair{Dirn: MD_Down, Behaviour: EB_DoorOpen}
+		}
+		if Requests_below(e) {
+			return DirnBehaviourPair{Dirn: MD_Down, Behaviour: EB_Moving}
+		}
+		return DirnBehaviourPair{Dirn: MD_Stop, Behaviour: EB_Idle}
+	case MD_Down:
+		if Requests_above(e) {
+			return DirnBehaviourPair{Dirn: MD_Up, Behaviour: EB_Moving}
+		}
+		if Requests_here(e) {
+			return DirnBehaviourPair{Dirn: MD_Up, Behaviour: EB_DoorOpen} // Er denne riktig?
+		}
+		if Requests_below(e) {
+			return DirnBehaviourPair{Dirn: MD_Down, Behaviour: EB_Moving}
+		}
+		return DirnBehaviourPair{Dirn: MD_Stop, Behaviour: EB_Idle}
+	case MD_Stop: // there should only be one request in the Stop case. Checking up or down first is arbitrary.
+		if Requests_above(e) {
+			return DirnBehaviourPair{Dirn: MD_Up, Behaviour: EB_Moving}
+		}
+		if Requests_here(e) {
+			return DirnBehaviourPair{Dirn: MD_Stop, Behaviour: EB_DoorOpen}
+		}
+		if Requests_below(e) {
+			return DirnBehaviourPair{Dirn: MD_Down, Behaviour: EB_Moving}
+		}
+		return DirnBehaviourPair{Dirn: MD_Stop, Behaviour: EB_Idle}
 	default:
-		return 1
+		return DirnBehaviourPair{Dirn: MD_Stop, Behaviour: EB_Idle}
 	}
 }
 
-func requests_shouldClearImmediately(e Elevator, btn_floor int, btn_type Button) int {
-	switch e.config.clearRequestVariant {
+func Requests_shouldStop(e Elevator) bool {
+	switch e.Dirn {
+	case MD_Down:
+		return (e.Requests[e.Floor][BT_HallDown] == 1) || (e.Requests[e.Floor][BT_Cab] == 1) || !Requests_below(e)
+	case MD_Up:
+		return e.Requests[e.Floor][BT_HallUp] == 1 || e.Requests[e.Floor][BT_Cab] == 1 || !Requests_above(e)
+	//case MD_Stop:
+	default:
+		return true
+	}
+}
+
+func Requests_shouldClearImmediately(e Elevator, btn_floor int, btn_type ButtonType) bool {
+	switch e.Config {
 	case CV_All:
-		return e.floor == btn_floor
+		return e.Floor == btn_floor
 	case CV_InDirn:
-		return e.floor == btn_floor && ((e.dirn == D_Up && btn_type == BT_HallUp) || (e.dirn == D_Down && btn_type == BT_HallDown) || e.dirn == D_Stop || btn_type == BT_Cab)
+		return e.Floor == btn_floor && ((e.Dirn == MD_Up && btn_type == BT_HallUp) || (e.Dirn == MD_Down && btn_type == BT_HallDown) || e.Dirn == MD_Stop || btn_type == BT_Cab)
 	default:
-		return 0
+		return false
 	}
 }
 
-func requests_clearAtCurrentFloor(e Elevator) Elevator {
+func Requests_clearAtCurrentFloor(e Elevator) Elevator {
 
-	switch e.config.clearRequestVariant {
+	switch e.Config {
 	case CV_All:
 		for btn := 0; btn < N_BUTTONS; btn++ { //kan hende btn må være Button
-			e.requests[e.floor][btn] = 0
+			e.Requests[e.Floor][btn] = 0
 		}
 
 	case CV_InDirn:
-		e.requests[e.floor][BT_Cab] = 0
-		switch e.dirn {
+		e.Requests[e.Floor][BT_Cab] = 0
+		switch e.Dirn {
 		case MD_Up:
-			if !requests_above(e) && !e.requests[e.floor][BT_HallUp] {
-				e.requests[e.floor][BT_HallDown] = 0
+			if !Requests_above(e) && e.Requests[e.Floor][BT_HallUp] == 0 {
+				e.Requests[e.Floor][BT_HallDown] = 0
 			}
-			e.requests[e.floor][BT_HallUp] = 0
+			e.Requests[e.Floor][BT_HallUp] = 0
 
 		case MD_Down:
-			if !requests_below(e) && !e.requests[e.floor][BT_HallDown] {
-				e.requests[e.floor][BT_HallUp] = 0
+			if !Requests_below(e) && e.Requests[e.Floor][BT_HallDown] == 0 {
+				e.Requests[e.Floor][BT_HallUp] = 0
 			}
-			e.requests[e.floor][BT_HallDown] = 0
+			e.Requests[e.Floor][BT_HallDown] = 0
 
 		case MD_Stop:
 		default:
-			e.requests[e.floor][BT_HallUp] = 0
-			e.requests[e.floor][BT_HallDown] = 0
+			e.Requests[e.Floor][BT_HallUp] = 0
+			e.Requests[e.Floor][BT_HallDown] = 0
 
 		}
 
