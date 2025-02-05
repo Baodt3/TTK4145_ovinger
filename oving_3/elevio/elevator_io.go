@@ -50,7 +50,7 @@ type Elevator struct {
 	Dirn      MotorDirection
 	Requests  [4][3]int
 	Behaviour ElevatorBehaviour
-	Config ClearRequestVariant
+	Config    ClearRequestVariant
 }
 
 type ElevatorBehaviour int
@@ -142,10 +142,12 @@ func PollObstructionSwitch(receiver chan<- bool) {
 		time.Sleep(_pollRate)
 		v := GetObstruction()
 		if v != prev {
+			fmt.Printf("V: %t \n", v)
 			receiver <- v
 		}
 		prev = v
 	}
+
 }
 
 func GetButton(button ButtonType, floor int) bool {

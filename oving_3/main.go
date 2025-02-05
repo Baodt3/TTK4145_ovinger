@@ -25,23 +25,35 @@ func findDirection(floor int, desired_floor int) {
 	}
 }
 
-func PollDoorTimer(e *Elevator) {
+func PollDoorTimer(e *Elevator, obstruction *bool) {
 
 	for {
-		if timer.Timer_timedOut() {
-			fmt.Println("Stopping timer")
-			timer.Timer_stop()
-			fsm.Fsm_onDoorTimeout(e)
+		if *obstruction {
+			timer.Timer_start()
+		} else {
+			if timer.Timer_timedOut() {
+				fmt.Println("Stopping timer")
+				timer.Timer_stop()
+				fsm.Fsm_onDoorTimeout(e)
 
+			}
 		}
+
 	}
 
 }
+
+func updateObstruction(obstruction *bool, drv_obstr <-chan bool) {
+	for {
+		*obstruction = <-drv_obstr
+	}
+}
+
 func main() {
 
 	numFloors := 4
 	var elevator = Elevator{Floor: -1, Dirn: MD_Stop, Behaviour: EB_Idle}
-
+	obstruction := false
 	Init("localhost:15657", numFloors)
 	//elevio.SetMotorDirection(d)
 
@@ -54,7 +66,8 @@ func main() {
 	go PollFloorSensor(drv_floors)
 	go PollObstructionSwitch(drv_obstr)
 	go PollStopButton(drv_stop)
-	go PollDoorTimer(&elevator)
+	go PollDoorTimer(&elevator, &obstruction)
+	go updateObstruction(&obstruction, drv_obstr)
 
 	fsm.Fsm_onInitBetweenFloors(&elevator, drv_floors)
 	prev := -1
@@ -70,7 +83,8 @@ func main() {
 
 			prev = floor_sensed
 
-			//case a := <-drv_obstr:
+			//case v := <-drv_obstr:
+			//obstruction = v
 		}
 
 	}

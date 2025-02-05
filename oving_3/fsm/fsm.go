@@ -89,6 +89,7 @@ func Fsm_onFloorArrival(newFloor int, elevator *Elevator) {
 }
 
 func Fsm_onDoorTimeout(elevator *Elevator) {
+
 	fmt.Printf("Elevator behaviour: %d", elevator.Behaviour)
 	switch elevator.Behaviour {
 	case EB_DoorOpen:
