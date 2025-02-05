@@ -3,6 +3,8 @@ package main
 import (
 	. "elevator/elevio"
 	"elevator/fsm"
+	"elevator/timer"
+	"fmt"
 	"time"
 )
 
@@ -23,6 +25,16 @@ func findDirection(floor int, desired_floor int) {
 	}
 }
 
+func PollDoorTimer(drv_timer chan<- int) {
+
+	for {
+		if timer.Timer_timedOut() {
+			fmt.Println("Sending in channel")
+			drv_timer <- 0
+		}
+	}
+
+}
 func main() {
 
 	numFloors := 4
@@ -35,28 +47,35 @@ func main() {
 	drv_floors := make(chan int)
 	drv_obstr := make(chan bool)
 	drv_stop := make(chan bool)
+	drv_timer := make(chan int)
 
 	go PollButtons(drv_buttons)
 	go PollFloorSensor(drv_floors)
 	go PollObstructionSwitch(drv_obstr)
 	go PollStopButton(drv_stop)
+	go PollDoorTimer(drv_timer)
 
 	fsm.Fsm_onInitBetweenFloors(&elevator, drv_floors)
 	prev := -1
 
 	for {
 		select {
-			case b := <-drv_buttons:
-				fsm.Fsm_onRequestButtonPress(b.Floor, b.Button, &elevator)
-			case floor_sensed := <-drv_floors:
-				if floor_sensed != -1 && floor_sensed != prev {
-					fsm.Fsm_onFloorArrival(floor_sensed, &elevator)
-				}
+		case <-drv_timer:
+			fmt.Println("Stopping timer")
+			timer.Timer_stop()
+			fsm.Fsm_onDoorTimeout(&elevator)
 
-				prev = floor_sensed
+		case b := <-drv_buttons:
+			fsm.Fsm_onRequestButtonPress(b.Floor, b.Button, &elevator)
+		case floor_sensed := <-drv_floors:
+			if floor_sensed != -1 && floor_sensed != prev {
+				fsm.Fsm_onFloorArrival(floor_sensed, &elevator)
+			}
+
+			prev = floor_sensed
 
 			//case a := <-drv_obstr:
-
 		}
+
 	}
 }

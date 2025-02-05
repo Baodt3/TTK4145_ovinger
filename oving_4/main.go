@@ -63,6 +63,5 @@ func transformToPrimary(lastNumber int) {
 }
 
 func main() {
-
 	backup()
 }

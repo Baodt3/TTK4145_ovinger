@@ -3,7 +3,8 @@ package fsm
 import (
 	. "elevator/elevio"
 	"elevator/requests"
-	"time"
+	"elevator/timer"
+	"fmt"
 )
 
 func Fsm_onInitBetweenFloors(elevator *Elevator, floor chan int) {
@@ -30,13 +31,11 @@ func SetAllLights(es *Elevator) {
 }
 
 func Fsm_onRequestButtonPress(btn_floor int, btn_type ButtonType, elevator *Elevator) {
-	//fmt.Println("\n\n%s(%d, %s)\n", __FUNCTION__, btn_floor, elevio_button_toString(btn_type))
-	//elevator_print(elevator)
 
 	switch elevator.Behaviour {
 	case EB_DoorOpen:
 		if requests.Requests_shouldClearImmediately(*elevator, btn_floor, btn_type) {
-			//timer_start(elevator.config.doorOpenDuration_s)
+			timer.Timer_start()
 		} else {
 			elevator.Requests[btn_floor][btn_type] = 1
 		}
@@ -51,15 +50,11 @@ func Fsm_onRequestButtonPress(btn_floor int, btn_type ButtonType, elevator *Elev
 		elevator.Behaviour = pair.Behaviour
 		switch pair.Behaviour {
 		case EB_DoorOpen:
-			//outputDevice.doorLight(1)
 			SetDoorOpenLamp(true)
-			time.Sleep(3 * time.Second)
-			SetDoorOpenLamp(false)
-			//timer_start(elevator.config.doorOpenDuration_s)
+			timer.Timer_start()
 			*elevator = requests.Requests_clearAtCurrentFloor(*elevator)
 
 		case EB_Moving:
-			//outputDevice.motorDirection(elevator.Dirn)
 			SetMotorDirection(elevator.Dirn)
 
 		case EB_Idle:
@@ -82,12 +77,10 @@ func Fsm_onFloorArrival(newFloor int, elevator *Elevator) {
 			SetMotorDirection(MD_Stop)
 			SetDoorOpenLamp(true)
 			*elevator = requests.Requests_clearAtCurrentFloor(*elevator)
+			timer.Timer_start()
 			SetAllLights(elevator)
 			elevator.Behaviour = EB_DoorOpen
 
-			time.Sleep(3 * time.Second)
-			SetDoorOpenLamp(false)
-			elevator.Behaviour = EB_Idle
 		}
 
 	default:
@@ -96,26 +89,30 @@ func Fsm_onFloorArrival(newFloor int, elevator *Elevator) {
 }
 
 func Fsm_onDoorTimeout(elevator *Elevator) {
-
+	fmt.Printf("Elevator behaviour: %d", elevator.Behaviour)
 	switch elevator.Behaviour {
 	case EB_DoorOpen:
 		pair := requests.Requests_chooseDirection(*elevator)
+		fmt.Printf("Pair direction: %d \n", pair.Dirn)
+		fmt.Printf("Pair behaviour: %d \n", pair.Behaviour)
+
 		elevator.Dirn = pair.Dirn
 		elevator.Behaviour = pair.Behaviour
 
 		switch elevator.Behaviour {
 		case EB_DoorOpen:
+			timer.Timer_start()
 			*elevator = requests.Requests_clearAtCurrentFloor(*elevator)
 			SetAllLights(elevator)
-			time.Sleep(3 * time.Second)
-			SetDoorOpenLamp(false)
 
 		case EB_Moving:
+			SetDoorOpenLamp(false)
+			SetMotorDirection(elevator.Dirn)
 		case EB_Idle:
+			SetDoorOpenLamp(false)
 			SetMotorDirection(elevator.Dirn)
 
 		}
-
 	default:
 
 	}
