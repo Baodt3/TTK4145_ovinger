@@ -52,8 +52,8 @@ class Resource(T) {
     }
     
     void deallocate(T v){
-        value = v;
         mtx.lock();
+        value = v;
         if (!queue.empty()){
             queue.popFront();
         }

@@ -30,7 +30,7 @@ procedure protectobj is
     end Resource;
     protected body Resource is
     
-        entry allocateLow(val: out IntVec.Vector) when not busy is
+        entry allocateLow(val: out IntVec.Vector) when not busy and allocateHigh'Count = 0 is
         begin
             busy := True;
             --Put_Line("allocateLow");

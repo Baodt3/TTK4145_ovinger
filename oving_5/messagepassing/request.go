@@ -58,7 +58,7 @@ func resourceManager(askFor chan ResourceRequest, giveBack chan Resource) {
 		case res = <-giveBack:
 			busy = false
 			//fmt.Printf("[resource manager]: resource returned\n")
-		default:
+
 			if !busy && !queue.Empty() {
 				busy = true
 				highestPriority := queue.Front().(ResourceRequest)

@@ -41,14 +41,14 @@ func resourceManager(takeLow chan Resource, takeHigh chan Resource, giveBack cha
 	for {
 		select {
 		case takeHigh <- res:
-			res = <-giveBack
+
 		default:
 			select {
+			case takeHigh <- res:
 			case takeLow <- res:
-				res = <-giveBack
-			default:
 			}
 		}
+		res = <-giveBack
 	}
 }
 
